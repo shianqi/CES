@@ -6,6 +6,7 @@
 #include "CES.h"
 #include "CESDlg.h"
 #include "afxdialogex.h"
+#include "cCheckIdCard.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -52,6 +53,8 @@ CCESDlg::CCESDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CCESDlg::IDD, pParent)
 	, overplus_time(0)
 	, idc_time_left(_T(""))
+	, val_tecket_number(_T(""))
+	, val_id_number(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -61,6 +64,10 @@ void CCESDlg::DoDataExchange(CDataExchange* pDX)
 	CDialogEx::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_BEGIN_TEST, bt_begin_test);
 	DDX_Text(pDX, IDC_TIME_LEFT, idc_time_left);
+	DDX_Text(pDX, IDC_TICKET_NUMBER, val_tecket_number);
+	DDV_MaxChars(pDX, val_tecket_number, 11);
+	DDX_Text(pDX, IDC_ID_NUMBER, val_id_number);
+	DDV_MaxChars(pDX, val_id_number, 18);
 }
 
 BEGIN_MESSAGE_MAP(CCESDlg, CDialogEx)
@@ -164,9 +171,16 @@ HCURSOR CCESDlg::OnQueryDragIcon()
 
 void CCESDlg::OnBnClickedBeginTest()
 {
-	//
+	UpdateData(TRUE);	
+
+	if(!check_ticket_number(val_tecket_number)){
+		return;
+	}
+	if(!check_id_number(val_id_number)){
+		return;
+	}
+
 	bt_begin_test.EnableWindow(FALSE);//让按钮无法点击
-	// TODO: 在此添加控件通知处理程序代码
 	SetTimer(1,1000,NULL);
 }
 
@@ -189,4 +203,37 @@ CString CCESDlg::getOverplus_time(int time_left)
     CString t;
     t.Format(L"距考试结束还有：%d分%d秒",minute,second);
     return t;
+}
+
+/**
+ * 检查准考证号是否合法
+ */
+bool CCESDlg::check_ticket_number(CString ticketNumber)
+{
+	if(ticketNumber.GetLength()!=11){
+		MessageBox(_T("准考证必须为11位数字"));
+		return false;
+	}
+	return true;
+}
+
+/**
+ * 检查身份证号是否合法
+ */
+bool CCESDlg::check_id_number(CString idNumber)
+{
+	if(idNumber.GetLength()!=18){
+		MessageBox(_T("身份证信息长度为18位"));
+		return false;
+	}
+	cCheckIdCard tempID;
+	USES_CONVERSION; 
+	string str(W2A(idNumber));
+	bool b = tempID.CheckIDCard(str);
+	if(b){
+		return true;
+	}else{
+		MessageBox(_T("身份证信息不合法！"));
+	}
+	return false;
 }

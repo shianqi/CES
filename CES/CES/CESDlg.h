@@ -37,4 +37,8 @@ public:
 	int overplus_time;
 	CString getOverplus_time(int time_left);
 	CString idc_time_left;
+	CString val_tecket_number;
+	CString val_id_number;
+	bool check_ticket_number(CString ticketNumber);
+	bool check_id_number(CString idNumber);
 };

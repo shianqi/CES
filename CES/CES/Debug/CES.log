@@ -1,4 +1,4 @@
-﻿生成启动时间为 2016/8/17 12:34:08。
+﻿生成启动时间为 2016/8/17 16:25:15。
      1>项目“D:\killer\Documents\GitHub\CES\CES\CES\CES.vcxproj”在节点 2 上(build 个目标)。
      1>InitializeBuildStatus:
          正在创建“Debug\CES.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
@@ -6,6 +6,7 @@
          所有输出均为最新。
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D _UNICODE /D UNICODE /D _AFXDLL /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Debug\CES.pch" /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt CESDlg.cpp
          CESDlg.cpp
+     1>d:\killer\documents\github\ces\ces\ces\ccheckidcard.h(17): warning C4227: 使用了记时错误: 忽略引用上的限定符
        ResourceCompile:
          所有输出均为最新。
        ManifestResourceCompile:
@@ -13,6 +14,7 @@
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\killer\Documents\GitHub\CES\CES\Debug\CES.exe" /INCREMENTAL /NOLOGO /MANIFEST /ManifestFile:"Debug\CES.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\killer\Documents\GitHub\CES\CES\Debug\CES.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /ENTRY:"wWinMainCRTStartup" /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\killer\Documents\GitHub\CES\CES\Debug\CES.lib" /MACHINE:X86 Debug\CES.res
          Debug\CES.exe.embed.manifest.res
+         Debug\cCheckIdCard.obj
          Debug\CES.obj
          Debug\CESDlg.obj
          Debug\stdafx.obj
@@ -29,4 +31,4 @@
 
 生成成功。
 
-已用时间 00:00:00.43
+已用时间 00:00:01.00
