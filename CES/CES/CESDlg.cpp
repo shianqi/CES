@@ -50,6 +50,8 @@ END_MESSAGE_MAP()
 
 CCESDlg::CCESDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(CCESDlg::IDD, pParent)
+	, overplus_time(0)
+	, idc_time_left(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -57,12 +59,17 @@ CCESDlg::CCESDlg(CWnd* pParent /*=NULL*/)
 void CCESDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_BEGIN_TEST, bt_begin_test);
+	DDX_Text(pDX, IDC_TIME_LEFT, idc_time_left);
 }
 
 BEGIN_MESSAGE_MAP(CCESDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+//	ON_BN_CLICKED(IDC_BUTTON3, &CCESDlg::OnBnClickedButton3)
+ON_BN_CLICKED(IDC_BEGIN_TEST, &CCESDlg::OnBnClickedBeginTest)
+ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -151,3 +158,35 @@ HCURSOR CCESDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+
+
+void CCESDlg::OnBnClickedBeginTest()
+{
+	//
+	bt_begin_test.EnableWindow(FALSE);//让按钮无法点击
+	// TODO: 在此添加控件通知处理程序代码
+	SetTimer(1,1000,NULL);
+}
+
+
+void CCESDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	UpdateData(TRUE);
+	idc_time_left = getOverplus_time(++overplus_time);
+    UpdateData(FALSE);
+	CDialogEx::OnTimer(nIDEvent);
+}
+
+
+CString CCESDlg::getOverplus_time(int time_left)
+{
+	int sum = 15*60 - time_left;
+    int second = sum % 60;
+    int minute = sum / 60;
+    CString t;
+    t.Format(L"距考试结束还有：%d分%d秒",minute,second);
+    return t;
+}
