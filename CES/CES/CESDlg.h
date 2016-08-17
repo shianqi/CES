@@ -41,4 +41,15 @@ public:
 	CString val_id_number;
 	bool check_ticket_number(CString ticketNumber);
 	bool check_id_number(CString idNumber);
+	CString val_question_number;
+	CString val_answer_sheet;
+	CEdit ed_answer_sheet;
+	CEdit ed_ticket_number;
+	CEdit ed_id_number;
+	CComboBox cb_question_number;
+	CButton bt_submit_button;
+	CButton bt_print_button;
+	afx_msg void OnBnClickedSubmitButton();
+	afx_msg void OnBnClickedPrintButton();
+	bool create_pdf(CString val_ticket_number, CString val_id_number, double accuracy_rate, double typing_speed, double grade, CString text);
 };
