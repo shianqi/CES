@@ -4,6 +4,8 @@
 
 #pragma once
 #include "afxwin.h"
+#include <string>
+using namespace std;
 
 
 // CCESDlg 对话框
@@ -52,9 +54,18 @@ public:
 	CButton bt_print_button;
 	afx_msg void OnBnClickedSubmitButton();
 	afx_msg void OnBnClickedPrintButton();
+
+	//音乐模块
 	void playMusic();
 	DWORD getInfo(UINT wDeviceID,DWORD item);
 	void stopMusic();
+
+	//计算成绩模块
+	double getScore(); 
+	double getSpeed();
+	int getMin(int a, int b,int c);
+	double getAccuracy(string str1, string str2);
+
 	bool create_pdf(CString val_ticket_number, CString val_id_number, double accuracy_rate, double typing_speed, double grade, CString text);
 	
 	int total_minutes;

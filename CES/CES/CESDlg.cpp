@@ -193,6 +193,8 @@ void CCESDlg::OnBnClickedBeginTest()
 {
 	UpdateData(TRUE);
 	readIni();
+
+	
 	
 	if(!check_ticket_number(val_tecket_number)){
 		return;
@@ -226,7 +228,7 @@ void CCESDlg::readIni(){
 	//读取Int
 	total_minutes = GetPrivateProfileInt(L"ExamInfo",L"total_minutes",0,L".\\typist.ini");
 	total_questions = GetPrivateProfileInt(L"ExamInfo" ,L"total_questions", 0,L".\\typist.ini");
-	max_spee = GetPrivateProfileInt(L"ExamInfo" ,L"max_spee", 0,L".\\typist.ini");
+	max_spee = GetPrivateProfileInt(L"ExamInfo" ,L"max_speed", 0,L".\\typist.ini");
 
 	//读取CString
 	GetPrivateProfileString(L"ExamInfo",L"percentage_accuracy",L"",percentage_accuracy_cs.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
@@ -343,10 +345,14 @@ bool CCESDlg::check_id_number(CString idNumber)
 //提交成绩
 void CCESDlg::OnBnClickedSubmitButton()
 {
+	//getScore();
+	CString t;
+	t.Format(L"%f",getScore());
+	MessageBox(t);
 	// TODO: 在此添加控件通知处理程序代码
-	bt_submit_button.EnableWindow(FALSE);
-	bt_print_button.EnableWindow(TRUE);
-	ed_answer_sheet.EnableWindow(FALSE);
+	//bt_submit_button.EnableWindow(FALSE);
+	//bt_print_button.EnableWindow(TRUE);
+	//ed_answer_sheet.EnableWindow(FALSE);
 	//停止音乐
 	stopMusic();
 }
@@ -358,10 +364,106 @@ void CCESDlg::OnBnClickedPrintButton()
 	if(create_pdf(val_tecket_number, val_id_number, 4,2,3,val_answer_sheet)){
 		MessageBox(_T("打印成功，请在程序根目录查看文件“grade.pdf”"));
 	}
-	// TODO: 在此添加控件通知处理程序代码
 }
 
+/**
+ * 获取最终成绩
+ */
+double CCESDlg::getScore(){
+	USES_CONVERSION;
+	string str1 = T2A(( val_answer_sheet.GetBuffer()));
+	string str2 = "你好";
+	double accuracy = getAccuracy(str1,str2);
+	//CString t;
+	//t.Format(L"%f %f %f %f",percentage_accuracy,accuracy ,percentage_speed ,getSpeed());
+	//MessageBox(t);
+	return percentage_accuracy * accuracy + percentage_speed * getSpeed();
+}
 
+/**
+ * 获取准确率
+ */
+double CCESDlg::getAccuracy(string str1, string str2){
+	//计算两个字符串的长度。 
+	int len1 = str1.length(); 
+	int len2 = str2.length(); 
+	//建立数组，比字符长度大一个空间 
+	int **dif;
+	dif = new int*[len1 + 1];
+	for(int j=0;j<len1 + 1;j++){
+		dif[j] = new int[len2 + 1];        
+		//这个指针数组的每个指针元素又指向一个数组。
+	}
+
+	//赋初值，步骤B。 
+	for (int a = 0; a <= len1; a++) {
+		dif[a][0] = a; 
+	} 
+	for (int a = 0; a <= len2; a++) { 
+		dif[0][a] = a;
+	} 
+	//计算两个字符是否一样，计算左上的值 
+	int temp; 
+	for (int i = 1; i <= len1; i++) {
+		for (int j = 1; j <= len2; j++) {
+			if (str1[i - 1] == str2[j - 1]) {
+				temp = 0; 
+			} else { 
+				temp = 1; 
+			} 
+			//取三个值中最小的 
+			dif[i][j] = getMin(dif[i - 1][j - 1] + temp, dif[i][j - 1] + 1, dif[i - 1][j] + 1); 
+		} 
+	}
+	double maxNumber = 1 - (float) dif[len1][len2] / 
+		(str1.length() > str2.length()? str1.length():str2.length());
+	for (int i=0;i<len1 + 1;i++){
+		delete[] dif[i]; //先撤销指针元素所指向的数组
+	}                     
+	delete[] dif; 
+	return maxNumber*100.0;
+}  
+
+//得到最小值 
+int CCESDlg::getMin(int a, int b,int c) { 
+	int min = 99999999; 
+	if(a<min){
+		min = a;
+	}
+	if(b<min){
+		min = b;
+	}
+	if(c<min){
+		min = c;
+	}
+	return min;
+}
+
+/**
+ * 获取打字速度
+ * 返回速度和最快速度中更大的
+ */
+double CCESDlg::getSpeed(){
+	int answer_sheet_length = val_answer_sheet.GetLength();
+	double overplus_time_min = ((double)overplus_time)/60;
+	CString t;
+	//t.Format(L"%f",overplus_time_min);
+	//MessageBox(t);
+	double speedNow = answer_sheet_length / overplus_time_min;
+	double max_speed = (double)max_spee;
+	//t.Format(L"%f %f",speedNow ,max_speed);
+	//MessageBox(t);
+
+	if( speedNow <= max_speed){
+		return speedNow;
+	}else{
+		return max_speed;
+	}
+}
+
+/**
+ * 生成pdf
+ */
 bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number, 
 	double accuracy_rate, double typing_speed, double grade, CString text)
 {
