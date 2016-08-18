@@ -8,6 +8,7 @@
 #include "afxdialogex.h"
 #include "cCheckIdCard.h"
 #include "pdflib.h"
+#include <MMSystem.h>
 #include <string>
 #include <stdio.h>
 using namespace std;
@@ -16,6 +17,7 @@ using namespace std;
 #define new DEBUG_NEW
 #endif
 
+#pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "PDFLib.lib")
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
@@ -62,6 +64,7 @@ CCESDlg::CCESDlg(CWnd* pParent /*=NULL*/)
 	, val_id_number(_T(""))
 	, val_question_number(_T(""))
 	, val_answer_sheet(_T(""))
+	, total_minutes(0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -172,13 +175,6 @@ void CCESDlg::OnPaint()
 	else
 	{
 		CDialogEx::OnPaint();
-
-		int port = 0;
-		port = GetPrivateProfileInt(L"ExamInfo",L"total_questions",0,L".\\typist.ini");
-		
-		CString t;
-		t.Format(L"%d",port);
-		MessageBox(t);
 	}
 }
 
@@ -196,6 +192,7 @@ HCURSOR CCESDlg::OnQueryDragIcon()
 void CCESDlg::OnBnClickedBeginTest()
 {
 	UpdateData(TRUE);
+	readIni();
 	
 	if(!check_ticket_number(val_tecket_number)){
 		return;
@@ -217,6 +214,76 @@ void CCESDlg::OnBnClickedBeginTest()
 	ed_answer_sheet.EnableWindow(TRUE);//让文本框可以输入
 	bt_submit_button.EnableWindow(TRUE);
 	SetTimer(1,1000,NULL);
+
+	playMusic();
+	Invalidate();
+}
+
+void CCESDlg::readIni(){
+	CString percentage_accuracy_cs;
+	CString percentage_speed_cs;
+
+	//读取Int
+	total_minutes = GetPrivateProfileInt(L"ExamInfo",L"total_minutes",0,L".\\typist.ini");
+	total_questions = GetPrivateProfileInt(L"ExamInfo" ,L"total_questions", 0,L".\\typist.ini");
+	max_spee = GetPrivateProfileInt(L"ExamInfo" ,L"max_spee", 0,L".\\typist.ini");
+
+	//读取CString
+	GetPrivateProfileString(L"ExamInfo",L"percentage_accuracy",L"",percentage_accuracy_cs.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
+	GetPrivateProfileString(L"ExamInfo",L"percentage_speed",L"",percentage_speed_cs.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
+
+	//CString 转到 double
+	percentage_accuracy = _wtof(percentage_accuracy_cs);
+	percentage_speed = _wtof(percentage_speed_cs);
+
+	GetPrivateProfileString(L"ExamInfo",L"audio_format",L"",audio_format.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
+
+
+	CString t;
+	t.Format(L"%f",percentage_accuracy);
+	//MessageBox(t);
+}
+
+MCI_OPEN_PARMS op;
+void CCESDlg::playMusic(){
+	DWORD cdlen;//音频文件长度
+	op.dwCallback=NULL; 
+	op.lpstrAlias=NULL; 
+	op.lpstrDeviceType=audio_format;  //设备类型，大多数文件可以这样设置 
+	op.lpstrElementName=_T(".\\music.mp3"); //文件路径 
+	op.wDeviceID=NULL;      //打开设备成功以后保存这个设备号备用 
+	UINT rs;        //接受函数返回结果 
+	//发送命令打开设备，成功返回0，否则返回错误号，第三个参数这里必须MCI_OPEN_ELEMENT  
+	rs=mciSendCommand(NULL,MCI_OPEN,MCI_OPEN_ELEMENT,(DWORD)&op);
+	mciSendCommand(NULL,MCI_SET,MCI_SET_DOOR_OPEN,NULL);
+	cdlen = getInfo(op.wDeviceID,MCI_STATUS_LENGTH);//获取音频文件长度
+	
+	if(rs==0)        //设备打开成功就播放文件 
+	{ 
+		MCI_PLAY_PARMS pp; 
+		pp.dwCallback=NULL; 
+		pp.dwFrom=0;      //开始播放的位置 
+		mciSendCommand(op.wDeviceID,MCI_PLAY,MCI_NOTIFY,(DWORD)&pp);
+		//播放文件，如果第三个参数设为MCI_WAIT则程序窗口会被阻塞，为了避免这种情况可以设为MCI_NOTIFY 
+	}
+	//Sleep(cdlen);//根据文件长度等待，与MCI_WAIT效果一样，cdlen参数可以控制播放时间
+	//stopMusic();
+}
+
+DWORD CCESDlg::getInfo(UINT wDeviceID,DWORD item){
+	MCI_STATUS_PARMS mcistatusparms;
+	mcistatusparms.dwCallback=(DWORD)GetSafeHwnd();
+	mcistatusparms.dwItem=item;
+	mcistatusparms.dwReturn=0;
+	mciSendCommand(wDeviceID,MCI_STATUS,MCI_STATUS_ITEM,(DWORD)&mcistatusparms);
+	return mcistatusparms.dwReturn;
+}
+
+void CCESDlg::stopMusic(){
+	//在WM_CLOSE消息处理过程中发送MCI_CLOSE命令关闭设备
+	MCI_GENERIC_PARMS gp; 
+	gp.dwCallback=NULL; 
+	mciSendCommand(op.wDeviceID,MCI_CLOSE,MCI_WAIT,(DWORD)&gp);  
 }
 
 
@@ -279,6 +346,9 @@ void CCESDlg::OnBnClickedSubmitButton()
 	// TODO: 在此添加控件通知处理程序代码
 	bt_submit_button.EnableWindow(FALSE);
 	bt_print_button.EnableWindow(TRUE);
+	ed_answer_sheet.EnableWindow(FALSE);
+	//停止音乐
+	stopMusic();
 }
 
 

@@ -39,6 +39,7 @@ public:
 	CString idc_time_left;
 	CString val_tecket_number;
 	CString val_id_number;
+	void readIni();
 	bool check_ticket_number(CString ticketNumber);
 	bool check_id_number(CString idNumber);
 	CString val_question_number;
@@ -51,5 +52,15 @@ public:
 	CButton bt_print_button;
 	afx_msg void OnBnClickedSubmitButton();
 	afx_msg void OnBnClickedPrintButton();
+	void playMusic();
+	DWORD getInfo(UINT wDeviceID,DWORD item);
+	void stopMusic();
 	bool create_pdf(CString val_ticket_number, CString val_id_number, double accuracy_rate, double typing_speed, double grade, CString text);
+	
+	int total_minutes;
+	int total_questions;
+	int max_spee;
+	double percentage_accuracy;
+	double percentage_speed;
+	CString audio_format;
 };
