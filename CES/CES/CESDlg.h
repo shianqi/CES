@@ -53,6 +53,7 @@ public:
 	CButton bt_submit_button;
 	CButton bt_print_button;
 	afx_msg void OnBnClickedSubmitButton();
+	void submit();
 	afx_msg void OnBnClickedPrintButton();
 
 	//音乐模块
@@ -66,8 +67,23 @@ public:
 	int getMin(int a, int b,int c);
 	double getAccuracy(string str1, string str2);
 
+	double last_score;
+	double last_speed;
+	double last_accuracy;
+
+	//答案读模块
+	bool readAnswer(CString str);
+	CString right_answer;
+
+	//答案加密模块
+	string encrypt(string str);
+	string uncrypt(string str);
+
+	//pdf模块
 	bool create_pdf(CString val_ticket_number, CString val_id_number, double accuracy_rate, double typing_speed, double grade, CString text);
 	
+
+
 	int total_minutes;
 	int total_questions;
 	int max_spee;

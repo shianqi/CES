@@ -193,7 +193,6 @@ void CCESDlg::OnBnClickedBeginTest()
 {
 	UpdateData(TRUE);
 	readIni();
-
 	
 	
 	if(!check_ticket_number(val_tecket_number)){
@@ -203,9 +202,8 @@ void CCESDlg::OnBnClickedBeginTest()
 	if(!check_id_number(val_id_number)){
 		return;
 	}
-
-	if(val_question_number==""){
-		MessageBox(_T("请选择试题编号"));
+	
+	if(!readAnswer(val_question_number)){
 		return;
 	}
 
@@ -244,6 +242,62 @@ void CCESDlg::readIni(){
 	CString t;
 	t.Format(L"%f",percentage_accuracy);
 	//MessageBox(t);
+}
+
+//读取正确答案
+bool CCESDlg::readAnswer(CString str){
+	if(str==""){
+		MessageBox(_T("请选择试题编号"));
+		return false;
+	}
+
+	CFile file;
+	CString FileName1=L"data";
+	CString FileName2=L".txt";
+	CString FileName = FileName1+str+FileName2;
+	char buf[10000];//读1K
+	memset(buf,0,10000);//初始化内存，防止读出字符末尾出现乱码
+	try
+	{
+		if(!file.Open(FileName,CFile::modeRead))
+		{
+			MessageBox(L"no file!");
+			return false;
+		}
+		file.Read(buf,sizeof(buf));
+		file.Close();
+		CString t;
+		t.Format(L"%s",buf);
+		//m_data=buf;//给文本框赋值CString m_data
+		//UpdateData(false);//在文本框显示
+		//MessageBox(t);
+		right_answer = t;
+		return true;
+	}catch(int e){
+		MessageBox(_T("ERROR"));
+		return false;
+	}
+}
+
+
+/**
+ * 加密
+ */
+string CCESDlg::encrypt(string str){
+	for(int i=0;i<str.length();i++){
+		str[i]+=1;
+	}
+	return str;
+}
+
+/**
+ * 解密
+ */
+string CCESDlg::uncrypt(string str){
+	for(int i=0;i<str.length();i++){
+		str[i]-=1;
+	}
+	return str;
 }
 
 MCI_OPEN_PARMS op;
@@ -294,6 +348,9 @@ void CCESDlg::OnTimer(UINT_PTR nIDEvent)
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
 	UpdateData(TRUE);
 	idc_time_left = getOverplus_time(++overplus_time);
+	if(overplus_time>=total_minutes*60){
+		submit();
+	}
     UpdateData(FALSE);
 	CDialogEx::OnTimer(nIDEvent);
 }
@@ -301,7 +358,7 @@ void CCESDlg::OnTimer(UINT_PTR nIDEvent)
 
 CString CCESDlg::getOverplus_time(int time_left)
 {
-	int sum = 15*60 - time_left;
+	int sum = total_minutes*60 - time_left;
     int second = sum % 60;
     int minute = sum / 60;
     CString t;
@@ -345,14 +402,27 @@ bool CCESDlg::check_id_number(CString idNumber)
 //提交成绩
 void CCESDlg::OnBnClickedSubmitButton()
 {
-	//getScore();
+	INT_PTR nRes; 
+	nRes = MessageBox(_T("提交之后您的本次考试将结束，您确定提交吗？"), _T("提示"), MB_OKCANCEL | MB_ICONQUESTION); 
+	if (IDCANCEL == nRes)   
+        return;
+	
+	submit();
+}
+
+void CCESDlg::submit(){
+	last_score = getScore();
+	UpdateData(TRUE);
 	CString t;
-	t.Format(L"%f",getScore());
-	MessageBox(t);
+	t.Format(L"您本次的成绩为：\n 准确率：%.2f %% \n 速度：%.2f字/分钟 \n 成绩：%.2f",last_accuracy*100, last_speed, last_score);
+	idc_time_left = t;
+	KillTimer(1);
+	UpdateData(FALSE);
+	
 	// TODO: 在此添加控件通知处理程序代码
-	//bt_submit_button.EnableWindow(FALSE);
-	//bt_print_button.EnableWindow(TRUE);
-	//ed_answer_sheet.EnableWindow(FALSE);
+	bt_submit_button.EnableWindow(FALSE);
+	bt_print_button.EnableWindow(TRUE);
+	ed_answer_sheet.EnableWindow(FALSE);
 	//停止音乐
 	stopMusic();
 }
@@ -361,7 +431,7 @@ void CCESDlg::OnBnClickedSubmitButton()
 //打印成绩单
 void CCESDlg::OnBnClickedPrintButton()
 {
-	if(create_pdf(val_tecket_number, val_id_number, 4,2,3,val_answer_sheet)){
+	if(create_pdf(val_tecket_number, val_id_number, last_accuracy,last_speed,last_score,val_answer_sheet)){
 		MessageBox(_T("打印成功，请在程序根目录查看文件“grade.pdf”"));
 	}
 }
@@ -372,7 +442,8 @@ void CCESDlg::OnBnClickedPrintButton()
 double CCESDlg::getScore(){
 	USES_CONVERSION;
 	string str1 = T2A(( val_answer_sheet.GetBuffer()));
-	string str2 = "你好";
+	string str2 = T2A(( right_answer.GetBuffer()));
+
 	double accuracy = getAccuracy(str1,str2);
 	//CString t;
 	//t.Format(L"%f %f %f %f",percentage_accuracy,accuracy ,percentage_speed ,getSpeed());
@@ -386,7 +457,14 @@ double CCESDlg::getScore(){
 double CCESDlg::getAccuracy(string str1, string str2){
 	//计算两个字符串的长度。 
 	int len1 = str1.length(); 
+	str2 = str2.substr(1,str2.length());
 	int len2 = str2.length(); 
+
+	str2 = uncrypt(str2);
+	//CString t;
+	//t = uncrypt(str2).c_str();
+	//MessageBox(t);
+
 	//建立数组，比字符长度大一个空间 
 	int **dif;
 	dif = new int*[len1 + 1];
@@ -421,6 +499,7 @@ double CCESDlg::getAccuracy(string str1, string str2){
 		delete[] dif[i]; //先撤销指针元素所指向的数组
 	}                     
 	delete[] dif; 
+	last_accuracy = maxNumber;
 	return maxNumber*100.0;
 }  
 
@@ -451,6 +530,7 @@ double CCESDlg::getSpeed(){
 	//MessageBox(t);
 	double speedNow = answer_sheet_length / overplus_time_min;
 	double max_speed = (double)max_spee;
+	last_speed = speedNow;
 	//t.Format(L"%f %f",speedNow ,max_speed);
 	//MessageBox(t);
 
@@ -516,7 +596,7 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
         PDF_setfont(p,font_song, 8);
         PDF_set_text_pos(p,50, a4_height - 85);
         CString cs;
-		cs.Format(L"您打字的正确率是%f，速度是%f字/分钟，本次考试的成绩是%f分",accuracy_rate,typing_speed,grade);
+		cs.Format(L"您打字的正确率是%.2f%%，速度是%.2f字/分钟，本次考试的成绩是%.2f分",accuracy_rate*100,typing_speed,grade);
         s = T2A(cs.GetBuffer());
         PDF_show(p,s.c_str());
 
