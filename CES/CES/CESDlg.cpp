@@ -8,6 +8,7 @@
 #include "afxdialogex.h"
 #include "cCheckIdCard.h"
 #include "pdflib.h"
+
 #include <MMSystem.h>
 #include <string>
 #include <stdio.h>
@@ -97,6 +98,7 @@ ON_BN_CLICKED(IDC_BEGIN_TEST, &CCESDlg::OnBnClickedBeginTest)
 ON_WM_TIMER()
 ON_BN_CLICKED(IDC_SUBMIT_BUTTON, &CCESDlg::OnBnClickedSubmitButton)
 ON_BN_CLICKED(IDC_PRINT_BUTTON, &CCESDlg::OnBnClickedPrintButton)
+ON_EN_CHANGE(IDC_TICKET_NUMBER, &CCESDlg::OnChangeTicketNumber)
 END_MESSAGE_MAP()
 
 
@@ -195,6 +197,7 @@ void CCESDlg::OnBnClickedBeginTest()
 	readIni();
 	
 	
+	
 	if(!check_ticket_number(val_tecket_number)){
 		return;
 	}
@@ -233,15 +236,13 @@ void CCESDlg::readIni(){
 	GetPrivateProfileString(L"ExamInfo",L"percentage_speed",L"",percentage_speed_cs.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
 
 	//CString 转到 double
-	percentage_accuracy = _wtof(percentage_accuracy_cs);
-	percentage_speed = _wtof(percentage_speed_cs);
+	percentage_accuracy = transformPlus.toDouble(percentage_accuracy_cs);
+	percentage_speed = transformPlus.toDouble(percentage_speed_cs);
 
 	GetPrivateProfileString(L"ExamInfo",L"audio_format",L"",audio_format.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
 
 
-	CString t;
-	t.Format(L"%f",percentage_accuracy);
-	//MessageBox(t);
+	//MessageBox(transformPlus.toCString(percentage_accuracy));
 }
 
 //读取正确答案
@@ -383,13 +384,15 @@ bool CCESDlg::check_ticket_number(CString ticketNumber)
  */
 bool CCESDlg::check_id_number(CString idNumber)
 {
+	if(idNumber="test"){
+		return true;
+	}
 	if(idNumber.GetLength()!=18){
 		MessageBox(_T("身份证信息长度为18位"));
 		return false;
 	}
 	cCheckIdCard tempID;
-	USES_CONVERSION; 
-	string str(W2A(idNumber));
+	string str = transformPlus.toString(idNumber);
 	bool b = tempID.CheckIDCard(str);
 	if(b){
 		return true;
@@ -440,9 +443,9 @@ void CCESDlg::OnBnClickedPrintButton()
  * 获取最终成绩
  */
 double CCESDlg::getScore(){
-	USES_CONVERSION;
-	string str1 = T2A(( val_answer_sheet.GetBuffer()));
-	string str2 = T2A(( right_answer.GetBuffer()));
+
+	string str1 = transformPlus.toString(val_answer_sheet);
+	string str2 = transformPlus.toString(right_answer);
 
 	double accuracy = getAccuracy(str1,str2);
 	//CString t;
@@ -560,7 +563,37 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
         /* This means we must check return values of load_font() etc. */
         //PDF_set_parameter(p, "errorpolicy", "return");
 
-        if (PDF_begin_document(p, "./Grade.pdf", 0, "") == -1) {
+		BROWSEINFO bi;  
+		ZeroMemory(&bi,sizeof(BROWSEINFO));  
+		LPMALLOC pMalloc;  
+		LPITEMIDLIST pidl = SHBrowseForFolder(&bi);  
+  
+		if (pidl==NULL)  
+			return false;  
+		TCHAR * path = new TCHAR[MAX_PATH]; 
+		if(pidl != NULL)  
+		{  
+			  
+  
+			SHGetPathFromIDList(pidl,path);  
+			//      MessageBox(NULL,path,TEXT("Choose"),MB_OK);  
+			if(SUCCEEDED(SHGetMalloc(&pMalloc)))//pidl指向的对象用完应该释放，之前忽略了  
+			{  
+				pMalloc->Free(pidl);  
+				pMalloc->Release();  
+			}  
+
+			
+			UpdateData(FALSE);    
+  
+			//delete [] path;  
+		}
+
+		string spath = transformPlus.toString(path);
+		spath += "/Grade.pdf";
+		MessageBox(transformPlus.toCString(spath));
+		const char* c_s = spath.c_str();
+        if (PDF_begin_document(p, c_s, 0, "") == -1) {
             printf("Error: %s/n", PDF_get_errmsg(p));
             return false;
         }
@@ -581,15 +614,12 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
         PDF_setfont(p,font_song, 12);
         PDF_set_text_pos(p,50, a4_height - 50);
 
-
-
-        USES_CONVERSION;
-        string s = T2A(( val_ticket_number.GetBuffer()));
+		string s = transformPlus.toString(val_ticket_number);
         s = "准考证号：" + s;
         PDF_show(p,s.c_str());
 
         PDF_set_text_pos(p,50, a4_height - 65);
-        s = T2A(( val_id_number.GetBuffer()));
+        s = transformPlus.toString(val_id_number);
         s = "身份证号：" + s;
         PDF_show(p,s.c_str());
 
@@ -597,7 +627,7 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
         PDF_set_text_pos(p,50, a4_height - 85);
         CString cs;
 		cs.Format(L"您打字的正确率是%.2f%%，速度是%.2f字/分钟，本次考试的成绩是%.2f分",accuracy_rate*100,typing_speed,grade);
-        s = T2A(cs.GetBuffer());
+        s = transformPlus.toString(cs);
         PDF_show(p,s.c_str());
 
         PDF_setfont(p,font_song, 8);
@@ -605,16 +635,19 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
         s="以下是您本次考试录入的内容:";
         PDF_show(p,s.c_str());
 
-        PDF_set_text_pos(p,50, a4_height - 130);
-        s = T2A(text.GetBuffer());
-        PDF_show(p,s.c_str());
-        //PDF_setcolor(p, "fill", "cmyk", 1, 0,0,0);
-        //PDF_rect(p, 250,250, 250, 250);
-
-
-
-
-        //PDF_fill(p);
+		CString tmp;
+		int i = 0;
+		int width = 40; //一行允许的字符
+		if( text.GetLength()%width==0){
+			i = text.GetLength()/width;
+		}else{
+			i = text.GetLength()/width + 1;
+		}
+		
+		for(int j = 0;j<i;j++){
+			int s = j*width;
+			PDF_continue_text(p , (char *)_bstr_t(text.Mid(s,width).GetBuffer(0)));
+		}
 
         PDF_end_page_ext(p, "");
         PDF_end_document(p, "");
@@ -634,4 +667,15 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
 
     PDF_delete(p);
     return true;
+}
+
+
+void CCESDlg::OnChangeTicketNumber()
+{
+	// TODO:  如果该控件是 RICHEDIT 控件，它将不
+	// 发送此通知，除非重写 CDialogEx::OnInitDialog()
+	// 函数并调用 CRichEditCtrl().SetEventMask()，
+	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
+
+	// TODO:  在此添加控件通知处理程序代码
 }

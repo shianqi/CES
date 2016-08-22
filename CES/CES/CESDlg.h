@@ -5,6 +5,7 @@
 #pragma once
 #include "afxwin.h"
 #include <string>
+#include "TransformPlus.h"
 using namespace std;
 
 
@@ -87,7 +88,9 @@ public:
 	int total_minutes;
 	int total_questions;
 	int max_spee;
+	TransformPlus transformPlus;
 	double percentage_accuracy;
 	double percentage_speed;
 	CString audio_format;
+	afx_msg void OnChangeTicketNumber();
 };

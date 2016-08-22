@@ -107,6 +107,7 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TransformPlus.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cCheckIdCard.cpp" />
@@ -116,6 +117,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TransformPlus.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="CES.rc" />
