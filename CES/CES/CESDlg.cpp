@@ -7,7 +7,9 @@
 #include "CESDlg.h"
 #include "afxdialogex.h"
 #include "cCheckIdCard.h"
+#include "CESAdminDlg.h"
 #include "pdflib.h"
+
 
 #include <MMSystem.h>
 #include <string>
@@ -99,6 +101,7 @@ ON_WM_TIMER()
 ON_BN_CLICKED(IDC_SUBMIT_BUTTON, &CCESDlg::OnBnClickedSubmitButton)
 ON_BN_CLICKED(IDC_PRINT_BUTTON, &CCESDlg::OnBnClickedPrintButton)
 ON_EN_CHANGE(IDC_TICKET_NUMBER, &CCESDlg::OnChangeTicketNumber)
+ON_BN_CLICKED(IDC_BUTTON_ADMIN, &CCESDlg::OnBnClickedButtonAdmin)
 END_MESSAGE_MAP()
 
 
@@ -384,7 +387,7 @@ bool CCESDlg::check_ticket_number(CString ticketNumber)
  */
 bool CCESDlg::check_id_number(CString idNumber)
 {
-	if(idNumber="test"){
+	if(idNumber=="test"){
 		return true;
 	}
 	if(idNumber.GetLength()!=18){
@@ -591,7 +594,7 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
 
 		string spath = transformPlus.toString(path);
 		spath += "/Grade.pdf";
-		MessageBox(transformPlus.toCString(spath));
+		//MessageBox(transformPlus.toCString(spath));
 		const char* c_s = spath.c_str();
         if (PDF_begin_document(p, c_s, 0, "") == -1) {
             printf("Error: %s/n", PDF_get_errmsg(p));
@@ -678,4 +681,12 @@ void CCESDlg::OnChangeTicketNumber()
 	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
 
 	// TODO:  在此添加控件通知处理程序代码
+}
+
+
+void CCESDlg::OnBnClickedButtonAdmin()
+{
+	CCESAdminDlg cESAdminDlg;
+	cESAdminDlg.DoModal();
+	// TODO: 在此添加控件通知处理程序代码
 }

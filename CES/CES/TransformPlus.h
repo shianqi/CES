@@ -35,6 +35,6 @@ public:
 	int toInt(double dbl);
 
 	//const char*
-	const char * toConstChar(string s);
+	
 };
 

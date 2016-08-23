@@ -49,6 +49,9 @@
     <ClInclude Include="TransformPlus.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="CESAdminDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CES.cpp">
@@ -64,6 +67,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="TransformPlus.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CESAdminDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

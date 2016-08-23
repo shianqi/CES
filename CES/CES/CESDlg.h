@@ -6,6 +6,7 @@
 #include "afxwin.h"
 #include <string>
 #include "TransformPlus.h"
+#include "CESAdminDlg.h"
 using namespace std;
 
 
@@ -83,14 +84,17 @@ public:
 	//pdf模块
 	bool create_pdf(CString val_ticket_number, CString val_id_number, double accuracy_rate, double typing_speed, double grade, CString text);
 	
+	//类型转换模块
+	TransformPlus transformPlus;
 
-
+	//读取配置文件模块
 	int total_minutes;
 	int total_questions;
 	int max_spee;
-	TransformPlus transformPlus;
 	double percentage_accuracy;
 	double percentage_speed;
 	CString audio_format;
+
 	afx_msg void OnChangeTicketNumber();
+	afx_msg void OnBnClickedButtonAdmin();
 };

@@ -27,7 +27,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <UseOfMfc>Dynamic</UseOfMfc>
+    <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -102,6 +102,7 @@
   <ItemGroup>
     <ClInclude Include="cCheckIdCard.h" />
     <ClInclude Include="CES.h" />
+    <ClInclude Include="CESAdminDlg.h" />
     <ClInclude Include="CESDlg.h" />
     <ClInclude Include="pdflib.h" />
     <ClInclude Include="Resource.h" />
@@ -112,6 +113,7 @@
   <ItemGroup>
     <ClCompile Include="cCheckIdCard.cpp" />
     <ClCompile Include="CES.cpp" />
+    <ClCompile Include="CESAdminDlg.cpp" />
     <ClCompile Include="CESDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

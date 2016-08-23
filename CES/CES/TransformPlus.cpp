@@ -95,7 +95,4 @@ int TransformPlus::toInt(double dbl){
 	return i;
 }
 
-const char* toConstChar(string s){
-	return s.c_str();
-}
 
