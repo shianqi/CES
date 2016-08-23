@@ -95,6 +95,6 @@ public:
 	double percentage_speed;
 	CString audio_format;
 
-	afx_msg void OnChangeTicketNumber();
+//	afx_msg void OnChangeTicketNumber();
 	afx_msg void OnBnClickedButtonAdmin();
 };

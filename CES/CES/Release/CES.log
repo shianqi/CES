@@ -1,15 +1,17 @@
-﻿生成启动时间为 2016/8/23 10:52:03。
+﻿生成启动时间为 2016/8/23 20:17:53。
      1>项目“D:\killer\Documents\GitHub\CES\CES\CES\CES.vcxproj”在节点 2 上(build 个目标)。
      1>InitializeBuildStatus:
          正在创建“Release\CES.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
        ClCompile:
          所有输出均为最新。
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D _WINDOWS /D NDEBUG /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Release\CES.pch" /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt CESAdminDlg.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D _WINDOWS /D NDEBUG /D _MBCS /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"StdAfx.h" /Fp"Release\CES.pch" /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt CESAdminDlg.cpp
          CESAdminDlg.cpp
+     1>CESAdminDlg.cpp(198): warning C4018: “<”: 有符号/无符号不匹配
+     1>CESAdminDlg.cpp(206): warning C4018: “<”: 有符号/无符号不匹配
        ResourceCompile:
          所有输出均为最新。
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\killer\Documents\GitHub\CES\CES\Release\CES.exe" /INCREMENTAL:NO /NOLOGO /MANIFEST /ManifestFile:"Release\CES.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\killer\Documents\GitHub\CES\CES\Release\CES.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /ENTRY:"wWinMainCRTStartup" /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\killer\Documents\GitHub\CES\CES\Release\CES.lib" /MACHINE:X86 Release\CES.res
+         C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\killer\Documents\GitHub\CES\CES\Release\CES.exe" /INCREMENTAL:NO /NOLOGO /MANIFEST /ManifestFile:"Release\CES.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"D:\killer\Documents\GitHub\CES\CES\Release\CES.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\killer\Documents\GitHub\CES\CES\Release\CES.lib" /MACHINE:X86 Release\CES.res
          Release\cCheckIdCard.obj
          Release\CES.obj
          Release\CESAdminDlg.obj
@@ -28,4 +30,4 @@
 
 生成成功。
 
-已用时间 00:00:03.20
+已用时间 00:00:03.66

@@ -21,7 +21,6 @@ public:
 	string toString(CString cstr);
 	string toString(double dbl);
 	string toString(int i);
-	string toString(TCHAR *STR);
 	string toString(char* c);
 
 	//double

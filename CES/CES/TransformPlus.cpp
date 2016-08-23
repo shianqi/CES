@@ -19,21 +19,21 @@ CString TransformPlus::toCString(string str){
 
 CString TransformPlus::toCString(double dbl){
 	CString t;
-	t.Format(L"%f",dbl);
+	t.Format("%f",dbl);
 	return t;
 }
 
 CString TransformPlus::toCString(int i){
 	CString t;
-	t.Format(L"%d",i);
+	t.Format("%d",i);
 	return t;
 }
 
 
 //String
 string TransformPlus::toString(CString cstr){
-	USES_CONVERSION;
-	string str = T2A(( cstr.GetBuffer()));
+	string s(cstr.GetBuffer());
+	string str = s;
 	return str;
 }
 
@@ -50,14 +50,6 @@ string TransformPlus::toString(int i){
 	return str;
 }
 
-string TransformPlus::toString(TCHAR *STR){
-	int iLen = WideCharToMultiByte(CP_ACP, 0,STR, -1, NULL, 0, NULL, NULL);
-	char* chRtn =new char[iLen*sizeof(char)];
-	WideCharToMultiByte(CP_ACP, 0, STR, -1, chRtn, iLen, NULL, NULL);
-	string str(chRtn);
-	return str;
-}
-
 string TransformPlus::toString(char* c){
 	string s(c);
 	return s;
@@ -65,7 +57,7 @@ string TransformPlus::toString(char* c){
 
 //double
 double TransformPlus::toDouble(CString cstr){
-	return _wtof(cstr);
+	return atof(cstr);
 }
 
 double TransformPlus::toDouble(string str){

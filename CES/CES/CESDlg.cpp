@@ -1,7 +1,5 @@
-
 // CESDlg.cpp : 实现文件
 //
-
 #include "stdafx.h"
 #include "CES.h"
 #include "CESDlg.h"
@@ -24,7 +22,6 @@ using namespace std;
 #pragma comment(lib, "PDFLib.lib")
 
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
-
 class CAboutDlg : public CDialogEx
 {
 public:
@@ -40,16 +37,13 @@ public:
 protected:
 	DECLARE_MESSAGE_MAP()
 };
-
 CAboutDlg::CAboutDlg() : CDialogEx(CAboutDlg::IDD)
 {
 }
-
 void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 }
-
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
@@ -100,17 +94,15 @@ ON_BN_CLICKED(IDC_BEGIN_TEST, &CCESDlg::OnBnClickedBeginTest)
 ON_WM_TIMER()
 ON_BN_CLICKED(IDC_SUBMIT_BUTTON, &CCESDlg::OnBnClickedSubmitButton)
 ON_BN_CLICKED(IDC_PRINT_BUTTON, &CCESDlg::OnBnClickedPrintButton)
-ON_EN_CHANGE(IDC_TICKET_NUMBER, &CCESDlg::OnChangeTicketNumber)
+//ON_EN_CHANGE(IDC_TICKET_NUMBER, &CCESDlg::OnChangeTicketNumber)
 ON_BN_CLICKED(IDC_BUTTON_ADMIN, &CCESDlg::OnBnClickedButtonAdmin)
 END_MESSAGE_MAP()
 
 
 // CCESDlg 消息处理程序
-
 BOOL CCESDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
-
 	// 将“关于...”菜单项添加到系统菜单中。
 
 	// IDM_ABOUTBOX 必须在系统命令范围内。
@@ -137,6 +129,7 @@ BOOL CCESDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
+	readIni();
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -157,7 +150,6 @@ void CCESDlg::OnSysCommand(UINT nID, LPARAM lParam)
 // 如果向对话框添加最小化按钮，则需要下面的代码
 //  来绘制该图标。对于使用文档/视图模型的 MFC 应用程序，
 //  这将由框架自动完成。
-
 void CCESDlg::OnPaint()
 {
 	if (IsIconic())
@@ -191,15 +183,10 @@ HCURSOR CCESDlg::OnQueryDragIcon()
 }
 
 
-
-
-
+//点击开始考试
 void CCESDlg::OnBnClickedBeginTest()
 {
-	UpdateData(TRUE);
-	readIni();
-	
-	
+	UpdateData(TRUE);	
 	
 	if(!check_ticket_number(val_tecket_number)){
 		return;
@@ -224,79 +211,57 @@ void CCESDlg::OnBnClickedBeginTest()
 	playMusic();
 	Invalidate();
 }
-
+//读取配置文件
 void CCESDlg::readIni(){
 	CString percentage_accuracy_cs;
 	CString percentage_speed_cs;
 
 	//读取Int
-	total_minutes = GetPrivateProfileInt(L"ExamInfo",L"total_minutes",0,L".\\typist.ini");
-	total_questions = GetPrivateProfileInt(L"ExamInfo" ,L"total_questions", 0,L".\\typist.ini");
-	max_spee = GetPrivateProfileInt(L"ExamInfo" ,L"max_speed", 0,L".\\typist.ini");
+	total_minutes = GetPrivateProfileInt("ExamInfo","total_minutes",0,".\\typist.ini");
+	total_questions = GetPrivateProfileInt("ExamInfo" ,"total_questions", 0,".\\typist.ini");
+	max_spee = GetPrivateProfileInt("ExamInfo" ,"max_speed", 0,".\\typist.ini");
 
 	//读取CString
-	GetPrivateProfileString(L"ExamInfo",L"percentage_accuracy",L"",percentage_accuracy_cs.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
-	GetPrivateProfileString(L"ExamInfo",L"percentage_speed",L"",percentage_speed_cs.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
+	GetPrivateProfileString("ExamInfo","percentage_accuracy","",percentage_accuracy_cs.GetBuffer(MAX_PATH),MAX_PATH,".\\typist.ini");
+	GetPrivateProfileString("ExamInfo","percentage_speed","",percentage_speed_cs.GetBuffer(MAX_PATH),MAX_PATH,".\\typist.ini");
 
 	//CString 转到 double
 	percentage_accuracy = transformPlus.toDouble(percentage_accuracy_cs);
 	percentage_speed = transformPlus.toDouble(percentage_speed_cs);
 
-	GetPrivateProfileString(L"ExamInfo",L"audio_format",L"",audio_format.GetBuffer(MAX_PATH),MAX_PATH,L".\\typist.ini");
+	GetPrivateProfileString("ExamInfo","audio_format","",audio_format.GetBuffer(MAX_PATH),MAX_PATH,".\\typist.ini");
 
 
-	//MessageBox(transformPlus.toCString(percentage_accuracy));
+	for(int i= 1;i<=total_questions;i++){
+		CString str = transformPlus.toCString(i);
+		cb_question_number.AddString(str); 
+	}
 }
-
 //读取正确答案
 bool CCESDlg::readAnswer(CString str){
 	if(str==""){
-		MessageBox(_T("请选择试题编号"));
+		MessageBox("请选择试题编号");
 		return false;
 	}
 
-	CFile file;
-	CString FileName1=L"data";
-	CString FileName2=L".txt";
-	CString FileName = FileName1+str+FileName2;
-	char buf[10000];//读1K
-	memset(buf,0,10000);//初始化内存，防止读出字符末尾出现乱码
-	try
-	{
-		if(!file.Open(FileName,CFile::modeRead))
-		{
-			MessageBox(L"no file!");
-			return false;
-		}
-		file.Read(buf,sizeof(buf));
-		file.Close();
-		CString t;
-		t.Format(L"%s",buf);
-		//m_data=buf;//给文本框赋值CString m_data
-		//UpdateData(false);//在文本框显示
-		//MessageBox(t);
-		right_answer = t;
-		return true;
-	}catch(int e){
-		MessageBox(_T("ERROR"));
+	CString fileName="answer";
+	fileName+=str;
+	
+	GetPrivateProfileString("Answer",fileName,"-1",right_answer.GetBuffer(2000),2000,".\\typist.ini");
+	if(right_answer=="-1"){
+		MessageBox("试题不存在");
 		return false;
 	}
+	return true;
 }
-
-
-/**
- * 加密
- */
+//加密
 string CCESDlg::encrypt(string str){
 	for(int i=0;i<str.length();i++){
 		str[i]+=1;
 	}
 	return str;
 }
-
-/**
- * 解密
- */
+//解密
 string CCESDlg::uncrypt(string str){
 	for(int i=0;i<str.length();i++){
 		str[i]-=1;
@@ -346,7 +311,6 @@ void CCESDlg::stopMusic(){
 	mciSendCommand(op.wDeviceID,MCI_CLOSE,MCI_WAIT,(DWORD)&gp);  
 }
 
-
 void CCESDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
@@ -359,20 +323,17 @@ void CCESDlg::OnTimer(UINT_PTR nIDEvent)
 	CDialogEx::OnTimer(nIDEvent);
 }
 
-
 CString CCESDlg::getOverplus_time(int time_left)
 {
 	int sum = total_minutes*60 - time_left;
     int second = sum % 60;
     int minute = sum / 60;
     CString t;
-    t.Format(L"距考试结束还有：%d分%d秒",minute,second);
+    t.Format("距考试结束还有：%d分%d秒",minute,second);
     return t;
 }
 
-/**
- * 检查准考证号是否合法
- */
+//检查准考证号是否合法
 bool CCESDlg::check_ticket_number(CString ticketNumber)
 {
 	if(ticketNumber.GetLength()!=11){
@@ -381,10 +342,7 @@ bool CCESDlg::check_ticket_number(CString ticketNumber)
 	}
 	return true;
 }
-
-/**
- * 检查身份证号是否合法
- */
+//检查身份证号是否合法
 bool CCESDlg::check_id_number(CString idNumber)
 {
 	if(idNumber=="test"){
@@ -404,7 +362,6 @@ bool CCESDlg::check_id_number(CString idNumber)
 	}
 	return false;
 }
-
 //提交成绩
 void CCESDlg::OnBnClickedSubmitButton()
 {
@@ -415,12 +372,12 @@ void CCESDlg::OnBnClickedSubmitButton()
 	
 	submit();
 }
-
+//提交
 void CCESDlg::submit(){
 	last_score = getScore();
 	UpdateData(TRUE);
 	CString t;
-	t.Format(L"您本次的成绩为：\n 准确率：%.2f %% \n 速度：%.2f字/分钟 \n 成绩：%.2f",last_accuracy*100, last_speed, last_score);
+	t.Format("您本次的成绩为：\n 准确率：%.2f %% \n 速度：%.2f字/分钟 \n 成绩：%.2f",last_accuracy*100, last_speed, last_score);
 	idc_time_left = t;
 	KillTimer(1);
 	UpdateData(FALSE);
@@ -432,8 +389,6 @@ void CCESDlg::submit(){
 	//停止音乐
 	stopMusic();
 }
-
-
 //打印成绩单
 void CCESDlg::OnBnClickedPrintButton()
 {
@@ -441,35 +396,20 @@ void CCESDlg::OnBnClickedPrintButton()
 		MessageBox(_T("打印成功，请在程序根目录查看文件“grade.pdf”"));
 	}
 }
-
-/**
- * 获取最终成绩
- */
+//获取最终成绩
 double CCESDlg::getScore(){
-
-	string str1 = transformPlus.toString(val_answer_sheet);
-	string str2 = transformPlus.toString(right_answer);
-
+	string str1(val_answer_sheet.GetBuffer());
+	string s(right_answer.GetBuffer()); 
+	string str2 = s;
+	str2 = uncrypt(str2);
 	double accuracy = getAccuracy(str1,str2);
-	//CString t;
-	//t.Format(L"%f %f %f %f",percentage_accuracy,accuracy ,percentage_speed ,getSpeed());
-	//MessageBox(t);
 	return percentage_accuracy * accuracy + percentage_speed * getSpeed();
 }
-
-/**
- * 获取准确率
- */
+//获取准确率
 double CCESDlg::getAccuracy(string str1, string str2){
 	//计算两个字符串的长度。 
 	int len1 = str1.length(); 
-	str2 = str2.substr(1,str2.length());
 	int len2 = str2.length(); 
-
-	str2 = uncrypt(str2);
-	//CString t;
-	//t = uncrypt(str2).c_str();
-	//MessageBox(t);
 
 	//建立数组，比字符长度大一个空间 
 	int **dif;
@@ -508,7 +448,6 @@ double CCESDlg::getAccuracy(string str1, string str2){
 	last_accuracy = maxNumber;
 	return maxNumber*100.0;
 }  
-
 //得到最小值 
 int CCESDlg::getMin(int a, int b,int c) { 
 	int min = 99999999; 
@@ -523,11 +462,7 @@ int CCESDlg::getMin(int a, int b,int c) {
 	}
 	return min;
 }
-
-/**
- * 获取打字速度
- * 返回速度和最快速度中更大的
- */
+//获取打字速度 返回速度和最快速度中更大的
 double CCESDlg::getSpeed(){
 	int answer_sheet_length = val_answer_sheet.GetLength();
 	double overplus_time_min = ((double)overplus_time)/60;
@@ -546,10 +481,7 @@ double CCESDlg::getSpeed(){
 		return max_speed;
 	}
 }
-
-/**
- * 生成pdf
- */
+//生成pdf
 bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number, 
 	double accuracy_rate, double typing_speed, double grade, CString text)
 {
@@ -629,7 +561,7 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
         PDF_setfont(p,font_song, 8);
         PDF_set_text_pos(p,50, a4_height - 85);
         CString cs;
-		cs.Format(L"您打字的正确率是%.2f%%，速度是%.2f字/分钟，本次考试的成绩是%.2f分",accuracy_rate*100,typing_speed,grade);
+		cs.Format("您打字的正确率是%.2f%%，速度是%.2f字/分钟，本次考试的成绩是%.2f分",accuracy_rate*100,typing_speed,grade);
         s = transformPlus.toString(cs);
         PDF_show(p,s.c_str());
 
@@ -661,7 +593,7 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
         printf("[%d] %s: %s/n",
             PDF_get_errnum(p), PDF_get_apiname(p), PDF_get_errmsg(p));
         CString cs;
-        cs.Format(L"[%d] %s: %s/n",
+        cs.Format("[%d] %s: %s/n",
             PDF_get_errnum(p), PDF_get_apiname(p), PDF_get_errmsg(p));
         PDF_delete(p);
 
@@ -671,19 +603,7 @@ bool CCESDlg::create_pdf(CString val_ticket_number, CString val_id_number,
     PDF_delete(p);
     return true;
 }
-
-
-void CCESDlg::OnChangeTicketNumber()
-{
-	// TODO:  如果该控件是 RICHEDIT 控件，它将不
-	// 发送此通知，除非重写 CDialogEx::OnInitDialog()
-	// 函数并调用 CRichEditCtrl().SetEventMask()，
-	// 同时将 ENM_CHANGE 标志“或”运算到掩码中。
-
-	// TODO:  在此添加控件通知处理程序代码
-}
-
-
+//管理员修改配置
 void CCESDlg::OnBnClickedButtonAdmin()
 {
 	CCESAdminDlg cESAdminDlg;
