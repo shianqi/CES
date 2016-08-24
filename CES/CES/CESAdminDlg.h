@@ -52,4 +52,5 @@ public:
 	afx_msg void OnBnClickedButton3();
 	string encrypt(string str);
 	string uncrypt(string str);
+	CString val_audio_path;
 };

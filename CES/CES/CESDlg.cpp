@@ -174,15 +174,12 @@ void CCESDlg::OnPaint()
 		CDialogEx::OnPaint();
 	}
 }
-
 //当用户拖动最小化窗口时系统调用此函数取得光标
 //显示。
 HCURSOR CCESDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
 }
-
-
 //点击开始考试
 void CCESDlg::OnBnClickedBeginTest()
 {
@@ -209,6 +206,7 @@ void CCESDlg::OnBnClickedBeginTest()
 	SetTimer(1,1000,NULL);
 
 	playMusic();
+	readIni();
 	Invalidate();
 }
 //读取配置文件
@@ -231,7 +229,7 @@ void CCESDlg::readIni(){
 
 	GetPrivateProfileString("ExamInfo","audio_format","",audio_format.GetBuffer(MAX_PATH),MAX_PATH,".\\typist.ini");
 
-
+	cb_question_number.Clear();
 	for(int i= 1;i<=total_questions;i++){
 		CString str = transformPlus.toCString(i);
 		cb_question_number.AddString(str); 
@@ -244,10 +242,30 @@ bool CCESDlg::readAnswer(CString str){
 		return false;
 	}
 
-	CString fileName="answer";
-	fileName+=str;
-	
-	GetPrivateProfileString("Answer",fileName,"-1",right_answer.GetBuffer(2000),2000,".\\typist.ini");
+	//读取文件
+	CFile file;
+	CString FileName="./answer/answer"+str+".txt";
+	char buf[1000];//读1K
+	memset(buf,0,1000);//初始化内存，防止读出字符末尾出现乱码
+	try{
+		if(!file.Open(FileName,CFile::modeRead)){
+			MessageBox("没有文件!");
+			return false;
+		}
+		file.Read(buf,sizeof(buf));
+		file.Close();
+		//m_data=buf;//给文本框赋值CString m_data
+		right_answer = buf;
+		//UpdateData(false);//在文本框显示
+		//MessageBox("读出成功！");
+	}catch(CFileException *e){
+		CString str;
+		str.Format("读取数据失败的原因是:%d",e->m_cause);
+		MessageBox("str");
+		file.Abort();
+		e->Delete();
+	}
+	//GetPrivateProfileString("Answer",fileName,"-1",right_answer.GetBuffer(2000),2000,".\\typist.ini");
 	if(right_answer=="-1"){
 		MessageBox("试题不存在");
 		return false;
@@ -268,14 +286,20 @@ string CCESDlg::uncrypt(string str){
 	}
 	return str;
 }
-
+//play the Audio
 MCI_OPEN_PARMS op;
 void CCESDlg::playMusic(){
+	UpdateData(true);
+	CString audioName = "audio"+val_question_number;
+
+	CString str;
+	GetPrivateProfileString("Audio",audioName,"-1",str.GetBuffer(2000),2000,".\\typist.ini");
+
 	DWORD cdlen;//音频文件长度
 	op.dwCallback=NULL; 
 	op.lpstrAlias=NULL; 
 	op.lpstrDeviceType=audio_format;  //设备类型，大多数文件可以这样设置 
-	op.lpstrElementName=_T(".\\music.mp3"); //文件路径 
+	op.lpstrElementName=str; //文件路径 
 	op.wDeviceID=NULL;      //打开设备成功以后保存这个设备号备用 
 	UINT rs;        //接受函数返回结果 
 	//发送命令打开设备，成功返回0，否则返回错误号，第三个参数这里必须MCI_OPEN_ELEMENT  
@@ -303,14 +327,14 @@ DWORD CCESDlg::getInfo(UINT wDeviceID,DWORD item){
 	mciSendCommand(wDeviceID,MCI_STATUS,MCI_STATUS_ITEM,(DWORD)&mcistatusparms);
 	return mcistatusparms.dwReturn;
 }
-
+//停止播放音乐
 void CCESDlg::stopMusic(){
 	//在WM_CLOSE消息处理过程中发送MCI_CLOSE命令关闭设备
 	MCI_GENERIC_PARMS gp; 
 	gp.dwCallback=NULL; 
 	mciSendCommand(op.wDeviceID,MCI_CLOSE,MCI_WAIT,(DWORD)&gp);  
 }
-
+//时间消息处理函数
 void CCESDlg::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
@@ -322,7 +346,7 @@ void CCESDlg::OnTimer(UINT_PTR nIDEvent)
     UpdateData(FALSE);
 	CDialogEx::OnTimer(nIDEvent);
 }
-
+//获取结束时间
 CString CCESDlg::getOverplus_time(int time_left)
 {
 	int sum = total_minutes*60 - time_left;
@@ -332,7 +356,6 @@ CString CCESDlg::getOverplus_time(int time_left)
     t.Format("距考试结束还有：%d分%d秒",minute,second);
     return t;
 }
-
 //检查准考证号是否合法
 bool CCESDlg::check_ticket_number(CString ticketNumber)
 {

@@ -26,6 +26,7 @@ CCESAdminDlg::CCESAdminDlg(CWnd* pParent /*=NULL*/)
 	, val_percentage_speed(0)
 	, val2_question_number(_T(""))
 	, val_right_answer(_T(""))
+	, val_audio_path(_T(""))
 {
 	
 }
@@ -79,6 +80,7 @@ void CCESAdminDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO1, cb2_question_number);
 	DDX_CBString(pDX, IDC_COMBO1, val2_question_number);
 	DDX_Text(pDX, IDC_EDIT2, val_right_answer);
+	DDX_Text(pDX, audio_path, val_audio_path);
 }
 
 BEGIN_MESSAGE_MAP(CCESAdminDlg, CDialogEx)
@@ -128,30 +130,51 @@ void CCESAdminDlg::OnBnClickedButton1()
 void CCESAdminDlg::OnCbnSelchangeCombo1()
 {
 	UpdateData(true);
-
-
-
 	// TODO: 在此添加控件通知处理程序代码
-	CString fileName="answer";
 	CString str;
-
 	cb2_question_number.GetLBText(cb2_question_number.GetCurSel(),str);
-
 	val2_question_number = str;
 	UpdateData(false);
-	fileName+=str;
-	getAnswer(fileName);
+	getAnswer(str);
 }
 
 //读取答案，并加载到对话框
 void CCESAdminDlg::getAnswer(CString str){
 	UpdateData(true);
-	GetPrivateProfileString("Answer",str,"-1",right_answer.GetBuffer(2000),2000,".\\typist.ini");
+	//读取音频路径
+	CString audioPathCSt;
+	CString str2 = "audio"+str;
+	GetPrivateProfileString("Audio",str2,"-1",audioPathCSt.GetBuffer(2000),2000,".\\typist.ini");
+	val_audio_path = audioPathCSt;
 
-	string s(right_answer.GetBuffer());
+	//读取答案路径
+
+	CFile file;
+	CString FileName="./answer/answer"+str+".txt";
+	char buf[1000];//读1K
+	memset(buf,0,1000);//初始化内存，防止读出字符末尾出现乱码
+	try{
+		if(!file.Open(FileName,CFile::modeRead)){
+			MessageBox("没有文件!");
+			return;
+		}
+		file.Read(buf,sizeof(buf));
+		file.Close();
+		//m_data=buf;//给文本框赋值CString m_data
+		val_right_answer = buf;
+		//UpdateData(false);//在文本框显示
+		//MessageBox("读出成功！");
+	}catch(CFileException *e){
+		CString str;
+		str.Format("读取数据失败的原因是:%d",e->m_cause);
+		MessageBox("str");
+		file.Abort();
+		e->Delete();
+	}
+	//GetPrivateProfileString("Answer",str1,"-1",right_answer.GetBuffer(2000),2000,".\\typist.ini");
+	string s(val_right_answer.GetBuffer());
 	s = uncrypt(s);
 	CString cstr(s.c_str());
-
 	val_right_answer = cstr;
 	UpdateData(false);
 }
@@ -159,8 +182,16 @@ void CCESAdminDlg::getAnswer(CString str){
 //保存文本
 void CCESAdminDlg::OnBnClickedButton2()
 {
+	//判断是否选择了试题
+	CString questionStr;
+	questionStr = val2_question_number;
+	if(questionStr==""){
+		MessageBox("请选择试题");
+		return;
+	}
+
+
 	UpdateData(true);
-	// TODO: 在此添加控件通知处理程序代码
 	CString fileName="answer";
 	CString str;
 	cb2_question_number.GetLBText(cb2_question_number.GetCurSel(),str);
@@ -170,27 +201,78 @@ void CCESAdminDlg::OnBnClickedButton2()
 	s = encrypt(s);
 	CString cstr(s.c_str());
 
-	WritePrivateProfileString("Answer",fileName,cstr,".\\typist.ini");
-	MessageBox("保存成功");
+	CFile file;
+	CString FileName="./answer/"+fileName+".txt";
+	try
+	{
+		file.Open(FileName,CFile::modeCreate|CFile::modeWrite);
+		file.SeekToBegin();
+		file.Write((unsigned char *)(cstr.GetBuffer(0)),cstr.GetLength());//CString m_data
+		file.Flush();
+		file.Close();
+		MessageBox("保存成功！");
+	}
+	catch(CFileException *e)
+	{
+		CString str;
+		str.Format("写入失败的原因是:%d",e->m_cause);
+		MessageBox("str");
+		file.Abort();
+		e->Delete();
+	}
+	//WritePrivateProfileString("Answer",fileName,cstr,".\\typist.ini");
 	UpdateData(false);
 }
 
 //更改路径
 void CCESAdminDlg::OnBnClickedButton3()
 {
-	// TODO: 在此添加控件通知处理程序代码
-	BROWSEINFO bi;	                   //BROWSEINFO结构有很多成员参数可以自己设置
-	ZeroMemory(&bi,sizeof(BROWSEINFO));     //将以&bi为起始地址，大小为sizeof(BROWSEINFO)的内存区域用0填充
-	bi.ulFlags=BIF_BROWSEINCLUDEFILES;        //设置弹出的对话框属性。此处意思为包含文件。如果不设这个值，默认的是只有文件夹。ulFlags还可以定义很多别的属性
-	//bi.ulFlags=BIF_NEWDIALOGSTYLE;            //窗口可以调整大小，有新建文件夹按钮
-	//bi.lpszTitle=L"指定要处理的文件夹";       //在窗口内显示提示用户的语句
-	LPITEMIDLIST pidl = SHBrowseForFolder(&bi);   //Displays a dialog box enabling the user to select a Shell folder.
-	TCHAR * path = new TCHAR[MAX_PATH];
-	if(pidl != NULL)
-	{
-		SHGetPathFromIDList(pidl,path);      //Converts an item identifier list to a file system path
-		MessageBox(path);
+	CString str;
+	str = val2_question_number;
+	if(str==""){
+		MessageBox("请选择试题");
+		return;
 	}
+
+
+	CString m_strFolderPath="D:\\audio";
+// 判断路径是否存在 
+	if (!PathIsDirectory(m_strFolderPath)){ 
+		CString strMsg; 
+		strMsg.Format ("指定路径\"%s\"不存在，是否创建?", m_strFolderPath); 
+		if (AfxMessageBox(strMsg, MB_YESNO) == IDYES) { 
+			if (!CreateDirectory(m_strFolderPath, NULL ) ) { 
+				strMsg.Format ("创建路径\"%s\"失败！是否继续?", m_strFolderPath); 
+				if (AfxMessageBox(strMsg, MB_YESNO) == IDYES) 
+					return; 
+			} 
+		} 
+	} 
+
+
+	CFile m_file;
+	CString m_filePath,m_fileName;
+
+	CFileDialog dlg = CFileDialog(FALSE, NULL, NULL, OFN_READONLY,
+		"Audio Files (*.mp3;*.WMA)|*.mp3;*.WMA|",this);
+    if(dlg.DoModal() == IDCANCEL)
+        return;
+    
+    if(m_file.m_hFile != CFile::hFileNull)
+        OnClose();
+ 
+    m_fileName = dlg.GetFileName();
+ 
+    m_filePath = dlg.GetPathName();
+    
+	UpdateData();
+	
+	CString fpath = "D:\\audio\\audio"+str+".mp3";
+	WritePrivateProfileString("Audio","audio"+str,fpath,"./typist.ini");
+	::CopyFile(m_filePath,fpath,false);  
+	//MessageBox(m_filePath);
+	//MessageBox(fpath);
+	MessageBox("保存成功");
 }
 
 //加密
